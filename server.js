@@ -13,7 +13,7 @@ const posts=[
         post:"post2"
     },
 ]
-app.get('/posts',(req,res)=>{
+app.get('/posts',authenticateToken,(req,res)=>{
  res.json(posts)
 })
 app.post('/login',(req,res)=>{
