@@ -13,23 +13,33 @@ const posts=[
         post:"post2"
     },
 ]
-app.get('/posts',authenticateToken,(req,res)=>{
- res.json(posts)
+app.post('/posts',authenticateToken,(req,res)=>{
+     jwt.verify(req.token,process.env.ACCESS_SECRET_TOKEN,(err,posts)=>{
+    if(err) {res.json("you are still forbidden here")}
+    else{
+    res.json(posts)}
+   })
 })
 app.post('/login',(req,res)=>{
     const username=req.body.user
     const user={user:username}
-  const accesstoken=  jwt.sign(user,process.env.ACCESS_SECRET_TOKEN)
-  res.json({accesstoken:accesstoken})
+  const accesstoken=  jwt.sign(user,process.env.ACCESS_SECRET_TOKEN,(err,accesstoken)=>{
+    if(err){
+      res.sendStatus(403) 
+    }else{
+      res.json({accesstoken:accesstoken})
+    }
+  })
 })
 function authenticateToken(req,res,next){
-    const authHeader=req.headers[authorization]
-    const token=authHeader && authHeader.split(' ')[1]
-    if (token==null) return res.sendStatus(401)
-   jwt.verify(token,process.env.ACCESS_SECRET_TOKEN,(err,user)=>{
-   if(err) return res.sendStatus(403)
-   req.user=user
-   next()
-})
+   const bearerHeader=req.header['authorization']
+   if(typeof bearerHeader!=='undefined'){
+     const token=bearerHeader.split(' ')[1]
+     req.token=token
+     next()
+   }else{
+    res.json({message:"you are not authorized to access this page"}).sendStatus(403)
+   }
 }
-app.listen(3000)
+
+app.listen(4000)
